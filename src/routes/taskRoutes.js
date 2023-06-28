@@ -18,8 +18,10 @@ const swagger = require("../middleware/swagger");
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Task'
+ *                 $ref: "#/components/schemas/Task"
  */
+
+const a = "../models/taskModel.js";
 router.get("/", async (req, res, next) => {
   try {
     const tasks = await Task.getAll();
@@ -48,13 +50,14 @@ router.get("/", async (req, res, next) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Task'
+ *               $ref: "#/components/schemas/Task"
  *       404:
  *         description: Task not found
  */
 router.get("/:id", async (req, res, next) => {
   try {
     const taskId = parseInt(req.params.id);
+    console.log(taskId + " is task id");
     const task = await Task.getById(taskId);
     if (task) {
       res.json(task);
@@ -77,20 +80,22 @@ router.get("/:id", async (req, res, next) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Task'
+ *             $ref: "#/components/schemas/Task"
  *     responses:
  *       201:
  *         description: Created
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Task'
+ *               $ref: "#/components/schemas/Task"
  *       400:
  *         description: Bad request
  */
 router.post("/", async (req, res, next) => {
   try {
     const { title, description, dueDate, categoryId } = req.body;
+
+    console.log(title, description, categoryId, dueDate);
     const task = await Task.create(title, description, dueDate, categoryId);
     res.status(201).json(task);
   } catch (error) {
@@ -116,14 +121,14 @@ router.post("/", async (req, res, next) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Task'
+ *             $ref: "#/components/schemas/Task"
  *     responses:
  *       200:
  *         description: OK
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Task'
+ *               $ref: "#/components/schemas/Task"
  *       404:
  *         description: Task not found
  *       400:
@@ -133,6 +138,9 @@ router.put("/:id", async (req, res, next) => {
   try {
     const taskId = parseInt(req.params.id);
     const { title, description, dueDate, categoryId } = req.body;
+
+    console.log("_______________________________________");
+    console.log(taskId, title, description, dueDate, categoryId);
     const updatedTask = await Task.update(
       taskId,
       title,
@@ -140,6 +148,7 @@ router.put("/:id", async (req, res, next) => {
       dueDate,
       categoryId
     );
+
     if (updatedTask) {
       res.json(updatedTask);
     } else {
@@ -172,8 +181,10 @@ router.put("/:id", async (req, res, next) => {
 router.delete("/:id", async (req, res, next) => {
   try {
     const taskId = parseInt(req.params.id);
-    const deletedTask = await Task.delete(taskId);
-    if (deletedTask) {
+    const isDeleted = await Task.delete(taskId);
+
+    console.log(isDeleted);
+    if (isDeleted) {
       res.sendStatus(204);
     } else {
       res.status(404).json({ message: "Task not found" });

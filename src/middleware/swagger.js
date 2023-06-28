@@ -1,5 +1,4 @@
 const swaggerJsdoc = require("swagger-jsdoc");
-const swaggerAutogen = require("swagger-autogen")();
 
 const options = {
   definition: {
@@ -14,6 +13,32 @@ const options = {
         url: "http://localhost:3000",
       },
     ],
+    components: {
+      schemas: {
+        Task: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+            },
+            title: {
+              type: "string",
+            },
+
+            description: {
+              type: "string",
+            },
+            dueDate: {
+              type: "string",
+              format: "date-time",
+            },
+            categoryId: {
+              type: "integer",
+            },
+          },
+        },
+      },
+    },
   },
   apis: ["./src/routes/taskRoutes.js"],
 };
