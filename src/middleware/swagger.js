@@ -10,7 +10,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000",
+        url: "http://localhost:3001",
       },
     ],
     components: {
@@ -35,12 +35,26 @@ const options = {
             categoryId: {
               type: "integer",
             },
+            status: {
+              type: "string",
+            },
+          },
+        },
+        Category: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+            },
+            name: {
+              type: "string",
+            },
           },
         },
       },
     },
   },
-  apis: ["./src/routes/taskRoutes.js"],
+  apis: ["./src/routes/taskRoutes.js", "./src/routes/categoriesRoutes.js"],
 };
 
 const specs = swaggerJsdoc(options);

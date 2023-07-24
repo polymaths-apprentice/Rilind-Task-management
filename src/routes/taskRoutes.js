@@ -1,15 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const Task = require("../models/taskModel");
-const db = require("../config/db");
-const swagger = require("../middleware/swagger");
+const TaskService = require("../Services/taskService");
 
-// GET all tasks
+// GET tasks by category ID
 /**
  * @swagger
- * /tasks:
+ * /tasks/category/{category_id}:
  *   get:
- *     summary: Get all tasks
+ *     summary: Get tasks by category ID
+ *     parameters:
+ *       - in: path
+ *         name: category_id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the category
  *     responses:
  *       200:
  *         description: OK
@@ -20,11 +26,13 @@ const swagger = require("../middleware/swagger");
  *               items:
  *                 $ref: "#/components/schemas/Task"
  */
+router.get("/category/:category_id", async (req, res, next) => {
+  const category_id = req.params.category_id;
 
-const a = "../models/taskModel.js";
-router.get("/", async (req, res, next) => {
+  console.log("test test");
   try {
-    const tasks = await Task.getAll();
+    const tasks = await TaskService.getByCategoryId(category_id);
+    console.log(tasks);
     res.json(tasks);
   } catch (error) {
     next(error);
@@ -57,13 +65,38 @@ router.get("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
   try {
     const taskId = parseInt(req.params.id);
-    console.log(taskId + " is task id");
-    const task = await Task.getById(taskId);
+
+    const task = await TaskService.getById(taskId);
     if (task) {
       res.json(task);
     } else {
       res.status(404).json({ message: "Task not found" });
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET all tasks
+/**
+ * @swagger
+ * /tasks:
+ *   get:
+ *     summary: Get all tasks
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: "#/components/schemas/Task"
+ */
+router.get("/", async (req, res, next) => {
+  try {
+    const tasks = await TaskService.getAll();
+    res.json(tasks);
   } catch (error) {
     next(error);
   }
@@ -93,10 +126,18 @@ router.get("/:id", async (req, res, next) => {
  */
 router.post("/", async (req, res, next) => {
   try {
-    const { title, description, dueDate, categoryId } = req.body;
+    const { title, description, dueDate, categoryId, status } = req.body;
 
-    console.log(title, description, categoryId, dueDate);
-    const task = await Task.create(title, description, dueDate, categoryId);
+    console.log("________________________");
+    console.log(title);
+    console.log(categoryId);
+    const task = await TaskService.create(
+      title,
+      description,
+      dueDate,
+      categoryId,
+      status
+    );
     res.status(201).json(task);
   } catch (error) {
     next(error);
@@ -137,16 +178,17 @@ router.post("/", async (req, res, next) => {
 router.put("/:id", async (req, res, next) => {
   try {
     const taskId = parseInt(req.params.id);
-    const { title, description, dueDate, categoryId } = req.body;
+    const { title, description, dueDate, categoryId, status } = req.body;
 
-    console.log("_______________________________________");
-    console.log(taskId, title, description, dueDate, categoryId);
-    const updatedTask = await Task.update(
+    console.log("AAAAAAAAAAAAAAA");
+    console.log(taskId, title, description, dueDate, categoryId, status);
+    const updatedTask = await TaskService.update(
       taskId,
       title,
       description,
       dueDate,
-      categoryId
+      categoryId,
+      status
     );
 
     if (updatedTask) {
@@ -181,7 +223,7 @@ router.put("/:id", async (req, res, next) => {
 router.delete("/:id", async (req, res, next) => {
   try {
     const taskId = parseInt(req.params.id);
-    const isDeleted = await Task.delete(taskId);
+    const isDeleted = await TaskService.delete(taskId);
 
     console.log(isDeleted);
     if (isDeleted) {

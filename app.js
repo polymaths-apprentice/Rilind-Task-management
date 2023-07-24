@@ -6,14 +6,16 @@ dotenv.config();
 
 const db = require("./src/config/db");
 const taskRoutes = require("./src/routes/taskRoutes");
-const errorMiddleware = require("./src/middleware/errorMiddleware");
+const categoriesRoutes = require("./src/routes/categoriesRoutes");
 const swaggerDocs = require("./src/middleware/swagger");
 const swaggerUi = require("swagger-ui-express");
-
+const cors = require("cors");
 // Load environment variables
 
 // Create Express app
 const app = express();
+
+app.use(cors());
 
 // Middleware
 app.use(express.json());
@@ -23,9 +25,8 @@ db.connect();
 
 // Routes
 app.use("/tasks", taskRoutes);
+app.use("/categories", categoriesRoutes);
 
-// Error handling middleware
-// app.use(errorMiddleware);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Start the server
