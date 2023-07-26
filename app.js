@@ -4,27 +4,28 @@ const express = require("express");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const db = require("./src/config/db");
-const taskRoutes = require("./src/routes/taskRoutes");
+const PostGreDB = require("./src/config/DbConfig/postgreDb");
+const taskRouteConfig = require("./src/config/RouteConfig/taskRoutesConfig");
+
 const categoriesRoutes = require("./src/routes/categoriesRoutes");
 const swaggerDocs = require("./src/middleware/swagger");
 const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
-// Load environment variables
+const db = new PostGreDB();
 
-// Create Express app
 const app = express();
 
 app.use(cors());
 
-// Middleware
 app.use(express.json());
 
-// Database connection
 db.connect();
 
-// Routes
-app.use("/tasks", taskRoutes);
+// Set up task routes using the configuration
+
+//taskRouteConfig separate the configuration for /tasks since it will have dependency injection for the routes
+
+taskRouteConfig(app);
 app.use("/categories", categoriesRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));

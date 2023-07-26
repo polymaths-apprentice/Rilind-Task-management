@@ -1,30 +1,41 @@
-const db = require("../config/postgreDb");
 const IRepository = require("./IRepository");
-const Task = require("../models/taskModel");
 
 class TaskRepository extends IRepository {
+  constructor(db) {
+    super();
+    this.db = db;
+  }
+
   async getById(id) {
     const query = "SELECT * FROM tasks WHERE id = $1";
     const values = [id];
 
     try {
-      const result = await db.query(query, values);
-      return result.length > 0 ? result[0] : null;
+      const result = await this.db.query(query, values);
+
+      if (result.length > 0) {
+        return result[0];
+      } else {
+        throw new Error("Task not found with id");
+      }
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      if (error.message === "Task not found with id") {
+        throw error;
+      } else {
+        throw new Error("Database query failed to get task by ID");
+      }
     }
   }
 
   async getAll() {
     const query = "SELECT * FROM tasks";
 
+    console.log("TEST TEST TEST");
     try {
-      const result = await db.query(query);
+      const result = await this.db.query(query);
       return result;
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      throw new Error("Database query failed to get all task");
     }
   }
 
@@ -42,26 +53,25 @@ class TaskRepository extends IRepository {
     }
 
     try {
-      const result = await db.query(query, values);
+      const result = await this.db.query(query, values);
       return result[0];
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      throw new Error("Database query failed to create task");
     }
   }
 
   async update(entity) {
-    const { id, title, description, dueDate, categoryId, status } = entity;
+    const { taskId, title, description, dueDate, categoryId, status } = entity;
     const query =
       "UPDATE tasks SET title = $1, description = $2, due_date = $3, category_id = $4 , status = $5 WHERE id = $6 RETURNING id, title, description, due_date, category_id, status";
-    const values = [title, description, dueDate, categoryId, status, id];
+    const values = [title, description, dueDate, categoryId, status, taskId];
+    console.log(taskId, title, description, dueDate, categoryId, status);
 
     try {
-      const result = await db.query(query, values);
+      const result = await this.db.query(query, values);
       return result[0];
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      throw new Error("Database query failed to update task with id " + taskId);
     }
   }
 
@@ -70,11 +80,10 @@ class TaskRepository extends IRepository {
     const values = [id];
 
     try {
-      const result = await db.query(query, values);
+      const result = await this.db.query(query, values);
       return result.length > 0 ? true : false;
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      throw new Error("Database query failed to delete task with id " + id);
     }
   }
 }

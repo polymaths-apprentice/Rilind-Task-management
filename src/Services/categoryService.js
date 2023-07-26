@@ -1,8 +1,8 @@
-const CategoryRepository = require("../Repositories/categoryRepository");
+const Category = require("../models/categoryModel");
 
 class CategoryService {
-  constructor() {
-    this.categoryRepository = new CategoryRepository();
+  constructor(categoryRepository) {
+    this.categoryRepository = categoryRepository;
   }
 
   async getCategoryById(category_id) {

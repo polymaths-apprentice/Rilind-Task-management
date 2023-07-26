@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 class IRepository {
   async getById(id) {}
   async getAll() {}

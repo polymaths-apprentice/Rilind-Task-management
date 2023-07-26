@@ -1,131 +1,121 @@
-const TaskRepository = require("../Repositories/taskRepository");
-
 class TaskService {
-  constructor() {
-    this.taskRepository = new TaskRepository();
+  constructor(
+    taskDataRetriever,
+    taskDataMapper,
+    taskErrorHandler,
+    taskRepository
+  ) {
+    this.taskDataRetriever = taskDataRetriever;
+    this.taskDataMapper = taskDataMapper;
+    this.taskErrorHandler = taskErrorHandler;
+    this.taskRepository = taskRepository;
   }
 
   async getTaskById(id) {
     try {
-      const taskData = await this.taskRepository.getById(id);
+      const taskData = await this.taskDataRetriever.getTaskById(id);
+
       if (taskData) {
-        return new Task(
-          taskData.id,
-          taskData.title,
-          taskData.description,
-          taskData.due_date,
-          taskData.category_id,
-          taskData.status
-        );
+        const task = this.taskDataMapper.mapToTask(taskData);
+        return task;
       } else {
-        return null;
+        throw new Error("Task not found");
       }
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      this.taskErrorHandler.handleErrors(error);
     }
   }
 
   async getTasksByCategoryId(categoryId) {
     try {
-      const tasksData = await this.taskRepository.getByCategoryId(categoryId);
-      const tasks = tasksData.map(
-        (taskData) =>
-          new Task(
-            taskData.id,
-            taskData.title,
-            taskData.description,
-            taskData.due_date,
-            taskData.category_id,
-            taskData.status
-          )
+      const tasksData = await this.taskDataRetriever.getTasksByCategoryId(
+        categoryId
+      );
+      const tasks = tasksData.map((taskData) =>
+        this.taskDataMapper.mapToTask(taskData)
       );
       return tasks;
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      this.taskErrorHandler.handleErrors(error);
     }
   }
 
   async getAllTasks() {
     try {
-      const tasksData = await this.taskRepository.getAll();
-      const tasks = tasksData.map(
-        (taskData) =>
-          new Task(
-            taskData.id,
-            taskData.title,
-            taskData.description,
-            taskData.due_date,
-            taskData.category_id,
-            taskData.status
-          )
+      const tasksData = await this.taskDataRetriever.getAllTasks();
+
+      const tasks = tasksData.map((taskData) =>
+        this.taskDataMapper.mapToTask(taskData)
       );
       return tasks;
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      this.taskErrorHandler.handleErrors(error);
     }
   }
 
-  async createTask(title, description, dueDate, categoryId, status) {
+  async create(title, description, dueDate, categoryId, status) {
     try {
-      const newTaskData = await this.taskRepository.create(
+      const currentDate = new Date();
+      const inputDate = new Date(dueDate);
+
+      if (inputDate <= currentDate) {
+        throw new Error("Due date must be a future date");
+      }
+
+      const result = await this.taskRepository.create({
         title,
         description,
         dueDate,
         categoryId,
-        status
-      );
+        status,
+      });
 
-      return new Task(
-        newTaskData.id,
-        newTaskData.title,
-        newTaskData.description,
-        newTaskData.due_date,
-        newTaskData.category_id,
-        newTaskData.status
-      );
+      return result;
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      if (error.message === "Due date must be a future date") {
+        throw error;
+      } else {
+        throw new Error("Failed to create task");
+      }
     }
   }
 
   async updateTask(taskId, title, description, dueDate, categoryId, status) {
-    // Validate dueDate here if needed
-    // ...
-
     try {
-      const updatedTaskData = await this.taskRepository.update(
+      const updatedTaskData = await this.taskRepository.update({
         taskId,
         title,
         description,
         dueDate,
         categoryId,
-        status
-      );
+        status,
+      });
 
-      return new Task(
-        updatedTaskData.id,
-        updatedTaskData.title,
-        updatedTaskData.description,
-        updatedTaskData.due_date,
-        updatedTaskData.category_id,
-        updatedTaskData.status
-      );
+      if (updatedTaskData) {
+        const updatedTask = this.taskDataMapper.mapToTask(updatedTaskData);
+        return updatedTask;
+      } else {
+        throw new Error("Failed to update the task");
+      }
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      throw new Error("Failed to update the task");
     }
   }
 
   async deleteTask(taskId) {
     try {
-      return await this.taskRepository.delete(taskId);
+      const isDeleted = await this.taskRepository.delete(taskId);
+      if (isDeleted) {
+        return true;
+      } else {
+        throw new Error("Task not found");
+      }
     } catch (error) {
-      console.log(error.message);
-      throw error;
+      if (error.message === "Task not found") {
+        throw error;
+      } else {
+        throw new Error("Failed to delete the task");
+      }
     }
   }
 }

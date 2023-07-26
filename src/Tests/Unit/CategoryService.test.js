@@ -1,91 +1,96 @@
+const CategoryService = require("../../Services/categoryService");
 const CategoryRepository = require("../../Repositories/categoryRepository");
-const db = require("../../config/postgreDb");
 
-// Mock the db.query function using jest.fn()
-jest.mock("../../config/postgreDb", () => ({
-  query: jest.fn(),
-}));
-
-describe("getById", () => {
-  afterEach(() => {
-    db.query.mockReset();
-  });
-
-  test("should return the category when it exists", async () => {
-    const category_id = 1;
-    const expectedCategory = { id: 1, name: "Test Category" };
-    db.query.mockResolvedValueOnce([expectedCategory]);
-
-    const categoryRepo = new CategoryRepository();
-    const result = await categoryRepo.getById(category_id);
-
-    expect(result).toEqual(expectedCategory);
-    expect(db.query).toHaveBeenCalledTimes(1);
-    expect(db.query).toHaveBeenCalledWith(
-      "SELECT * FROM categories WHERE id = $1",
-      [category_id]
-    );
-  });
-
-  test("should throw an error when the database query fails", async () => {
-    const category_id = 3;
-    db.query.mockRejectedValueOnce(new Error("Database query failed"));
-
-    const categoryRepo = new CategoryRepository();
-
-    await expect(categoryRepo.getById(category_id)).rejects.toThrow(
-      "Failed to get category by ID"
-    );
-    expect(db.query).toHaveBeenCalledTimes(1);
-    expect(db.query).toHaveBeenCalledWith(
-      "SELECT * FROM categories WHERE id = $1",
-      [category_id]
-    );
-  });
-
-  test("should throw an error when the category does not exist", async () => {
-    const category_id = 2;
-    db.query.mockImplementation(() => Promise.resolve([]));
-
-    const categoryRepo = new CategoryRepository();
-
-    await expect(categoryRepo.getById(category_id)).rejects.toThrow(
-      "Category not found"
-    );
-    expect(db.query).toHaveBeenCalledTimes(1);
-    expect(db.query).toHaveBeenCalledWith(
-      "SELECT * FROM categories WHERE id = $1",
-      [category_id]
-    );
-  });
+jest.mock("../../Repositories/categoryRepository", () => {
+  return jest.fn().mockImplementation(() => ({
+    getById: jest.fn(),
+    getAll: jest.fn(),
+  }));
 });
 
-describe("getAll", () => {
+describe("CategoryService", () => {
   afterEach(() => {
-    db.query.mockReset();
+    jest.clearAllMocks();
   });
 
-  test("should return an array of categories", async () => {
-    const categoryData = [
-      { id: 1, name: "Category 1" },
-      { id: 2, name: "Category 2" },
-    ];
-    db.query.mockResolvedValueOnce(categoryData);
+  describe("getCategoryById", () => {
+    test("should return a category when it exists", async () => {
+      const category_id = 1;
+      const expectedCategoryData = {
+        id: category_id,
+        name: "Category 1",
+      };
+      const categoryRepo = new CategoryRepository();
+      categoryRepo.getById.mockResolvedValueOnce(expectedCategoryData);
 
-    const categoryRepository = new CategoryRepository();
-    const result = await categoryRepository.getAll();
+      const categoryService = new CategoryService(categoryRepo);
+      const result = await categoryService.getCategoryById(category_id);
 
-    expect(result).toEqual(categoryData);
-    expect(db.query).toHaveBeenCalledWith("SELECT * FROM categories");
+      expect(result).toBeDefined();
+      expect(result).toEqual(expectedCategoryData);
+      expect(categoryRepo.getById).toHaveBeenCalledTimes(1);
+      expect(categoryRepo.getById).toHaveBeenCalledWith(category_id);
+    });
+
+    test("should return null when the category does not exist", async () => {
+      const category_id = 2;
+      const categoryRepo = new CategoryRepository();
+      categoryRepo.getById.mockResolvedValueOnce(null);
+
+      const categoryService = new CategoryService(categoryRepo);
+      const result = await categoryService.getCategoryById(category_id);
+
+      expect(result).toBeNull();
+      expect(categoryRepo.getById).toHaveBeenCalledTimes(1);
+      expect(categoryRepo.getById).toHaveBeenCalledWith(category_id);
+    });
+
+    test("should throw an error when the category retrieval fails", async () => {
+      const category_id = 3;
+      const errorMessage = "Category retrieval failed";
+      const categoryRepo = new CategoryRepository();
+      categoryRepo.getById.mockRejectedValueOnce(new Error(errorMessage));
+
+      const categoryService = new CategoryService(categoryRepo);
+
+      await expect(
+        categoryService.getCategoryById(category_id)
+      ).rejects.toThrow(errorMessage);
+      expect(categoryRepo.getById).toHaveBeenCalledTimes(1);
+      expect(categoryRepo.getById).toHaveBeenCalledWith(category_id);
+    });
   });
 
-  test("should throw an error when there is an error in the database query", async () => {
-    const errorMessage = "Failed to get all categories";
-    db.query.mockRejectedValueOnce(new Error(errorMessage));
+  describe("getAllCategories", () => {
+    test("should return all categories", async () => {
+      const categoriesData = [
+        { id: 1, name: "Category 1" },
+        { id: 2, name: "Category 2" },
+        { id: 3, name: "Category 3" },
+      ];
 
-    const categoryRepository = new CategoryRepository();
+      const categoryRepo = new CategoryRepository();
+      categoryRepo.getAll.mockResolvedValueOnce(categoriesData);
 
-    await expect(categoryRepository.getAll()).rejects.toThrow(errorMessage);
-    expect(db.query).toHaveBeenCalledWith("SELECT * FROM categories");
+      const categoryService = new CategoryService(categoryRepo);
+      const result = await categoryService.getAllCategories();
+
+      expect(result).toBeDefined();
+      expect(result).toEqual(categoriesData);
+      expect(categoryRepo.getAll).toHaveBeenCalledTimes(1);
+    });
+
+    test("should throw an error when the category retrieval fails", async () => {
+      const errorMessage = "Category retrieval failed";
+      const categoryRepo = new CategoryRepository();
+      categoryRepo.getAll.mockRejectedValueOnce(new Error(errorMessage));
+
+      const categoryService = new CategoryService(categoryRepo);
+
+      await expect(categoryService.getAllCategories()).rejects.toThrow(
+        errorMessage
+      );
+      expect(categoryRepo.getAll).toHaveBeenCalledTimes(1);
+    });
   });
 });

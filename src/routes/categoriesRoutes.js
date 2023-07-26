@@ -1,8 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const CategoryService = require("../Services/categoryService");
+const PostgreDb = require("../config/DbConfig/postgreDb");
+const CategoryRepository = require("../Repositories/categoryRepository");
 
-const categoryService = new CategoryService();
+const db = new PostgreDb();
+const categoryRepository = new CategoryRepository(db);
+const categoryService = new CategoryService(categoryRepository);
 
 // GET all categories
 /**
@@ -54,7 +58,7 @@ router.get("/:category_id", async (req, res, next) => {
   const category_id = req.params.category_id;
 
   try {
-    const category = await Category.getById(category_id);
+    const category = await categoryService.getCategoryById(category_id);
     if (category) {
       res.json(category);
     } else {

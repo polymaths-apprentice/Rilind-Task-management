@@ -1,11 +1,13 @@
-const db = require("../config/postgreDb");
-
 class CategoryRepository {
+  constructor(db) {
+    this.db = db;
+  }
+
   async getById(category_id) {
     const query = "SELECT * FROM categories WHERE id = $1";
     const values = [category_id];
     try {
-      const result = await db.query(query, values);
+      const result = await this.db.query(query, values);
 
       if (result.length > 0) {
         return result[0];
@@ -16,7 +18,7 @@ class CategoryRepository {
       if (error.message === "Category not found") {
         throw error;
       } else {
-        throw new Error("Failed to get category by ID");
+        throw new Error("Database query failed to get category by ID");
       }
     }
   }
@@ -24,10 +26,10 @@ class CategoryRepository {
   async getAll() {
     const query = "SELECT * FROM categories";
     try {
-      const result = await db.query(query);
+      const result = await this.db.query(query);
       return result;
     } catch (error) {
-      throw new Error("Failed to get all categories");
+      throw new Error("Database query failed to get all categories");
     }
   }
 }
