@@ -200,7 +200,7 @@ describe("TaskRepository", () => {
     test("should update a task and return the updated task object", async () => {
       const taskIdToUpdate = 1;
       const updatedTaskData = {
-        id: taskIdToUpdate,
+        taskId: taskIdToUpdate,
         title: "Updated Task",
         description: "This is an updated task",
         dueDate: "2023-09-15",
@@ -209,7 +209,7 @@ describe("TaskRepository", () => {
       };
 
       const expectedUpdatedTask = {
-        id: taskIdToUpdate,
+        taskId: taskIdToUpdate,
         title: "Updated Task",
         description: "This is an updated task",
         dueDate: "2023-09-15",
@@ -239,7 +239,7 @@ describe("TaskRepository", () => {
     test("should throw an error when the database query fails", async () => {
       const taskIdToUpdate = 1;
       const updatedTaskData = {
-        id: taskIdToUpdate,
+        taskId: taskIdToUpdate,
         title: "Updated Task",
         description: "This is an updated task",
         dueDate: "2023-09-15",

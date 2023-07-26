@@ -22,7 +22,7 @@ class TaskService {
         throw new Error("Task not found");
       }
     } catch (error) {
-      this.taskErrorHandler.handleErrors(error);
+      throw new Error(error.message);
     }
   }
 
@@ -31,12 +31,13 @@ class TaskService {
       const tasksData = await this.taskDataRetriever.getTasksByCategoryId(
         categoryId
       );
+
       const tasks = tasksData.map((taskData) =>
         this.taskDataMapper.mapToTask(taskData)
       );
       return tasks;
     } catch (error) {
-      this.taskErrorHandler.handleErrors(error);
+      throw new Error(error.message);
     }
   }
 

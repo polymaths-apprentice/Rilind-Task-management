@@ -30,7 +30,6 @@ class TaskRepository extends IRepository {
   async getAll() {
     const query = "SELECT * FROM tasks";
 
-    console.log("TEST TEST TEST");
     try {
       const result = await this.db.query(query);
       return result;
@@ -65,7 +64,6 @@ class TaskRepository extends IRepository {
     const query =
       "UPDATE tasks SET title = $1, description = $2, due_date = $3, category_id = $4 , status = $5 WHERE id = $6 RETURNING id, title, description, due_date, category_id, status";
     const values = [title, description, dueDate, categoryId, status, taskId];
-    console.log(taskId, title, description, dueDate, categoryId, status);
 
     try {
       const result = await this.db.query(query, values);
@@ -84,6 +82,33 @@ class TaskRepository extends IRepository {
       return result.length > 0 ? true : false;
     } catch (error) {
       throw new Error("Database query failed to delete task with id " + id);
+    }
+  }
+
+  async getByCategoryId(categoryId) {
+    const query = `
+      SELECT 
+        t.id,
+        t.title,
+        t.description,
+        t.due_date,
+        t.status,
+        t.category_id
+      FROM
+        tasks t
+      WHERE
+      category_id = $1
+    `;
+    const values = [categoryId];
+
+    try {
+      const result = await this.db.query(query, values);
+      return result;
+    } catch (error) {
+      throw new Error(
+        "Database query failed to fetch tasks for category with id " +
+          categoryId
+      );
     }
   }
 }

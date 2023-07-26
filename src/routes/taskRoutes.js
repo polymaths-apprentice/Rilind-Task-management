@@ -217,7 +217,6 @@ module.exports = (taskService) => {
       const taskId = parseInt(req.params.id);
       const isDeleted = await taskService.deleteTask(taskId);
 
-      console.log(isDeleted);
       if (isDeleted) {
         res.sendStatus(204);
       } else {

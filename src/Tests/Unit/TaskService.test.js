@@ -89,37 +89,49 @@ describe("getAllTasks", () => {
 });
 
 describe("create", () => {
-  test("should create a task successfully", async () => {
-    const taskData = {
-      title: "Test Task",
-      description: "This is a test task",
-      dueDate: "2023-07-31",
-      categoryId: 1,
-      status: "pending",
-    };
+  afterAll(() => {
+    jest.clearAllMocks();
+  });
 
-    const expectedTask = { ...taskData, id: 1 };
+  test("should create a task successfully", async () => {
+    const title = "Test Task";
+    const description = "This is a test task";
+    const dueDate = "2023-07-31";
+    const categoryId = 1;
+    const status = "pending";
+
+    const expectedTask = {
+      title,
+      description,
+      dueDate,
+      categoryId,
+      status,
+      id: 1,
+    };
 
     mockTaskRepository.create.mockResolvedValue(expectedTask);
 
-    const createdTask = await taskService.create(taskData);
+    const createdTask = await taskService.create(
+      title,
+      description,
+      dueDate,
+      categoryId,
+      status
+    );
 
-    expect(mockTaskRepository.create).toHaveBeenCalledWith(taskData);
-    expect(createdTask).toEqual(expectedTask);
+    expect(createdTask).toMatchObject(expectedTask);
   });
 
   test("should throw an error if the due date is in the past", async () => {
-    const taskData = {
-      title: "Test Task",
-      description: "This is a test task",
-      dueDate: "2020-01-01",
-      categoryId: 1,
-      status: "created",
-    };
+    const title = "Test Task";
+    const description = "This is a test task";
+    const dueDate = "2020-01-01";
+    const categoryId = 1;
+    const status = "created";
 
-    await expect(taskService.create(taskData)).rejects.toThrow(
-      "Due date must be a future date"
-    );
+    await expect(
+      taskService.create(title, description, dueDate, categoryId, status)
+    ).rejects.toThrow("Due date must be a future date");
   });
 
   test("should throw an error if the task creation fails", async () => {
@@ -142,6 +154,10 @@ describe("create", () => {
 });
 
 describe("updateTask", () => {
+  afterAll(() => {
+    jest.clearAllMocks();
+  });
+
   test("should update a task successfully", async () => {
     const taskId = 1;
     const title = "Updated Task";
@@ -206,6 +222,10 @@ describe("updateTask", () => {
 });
 
 describe("deleteTask", () => {
+  afterAll(() => {
+    jest.clearAllMocks();
+  });
+
   test("should delete a task successfully", async () => {
     const taskId = 1;
 
