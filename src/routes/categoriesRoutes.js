@@ -7,7 +7,7 @@ const CategoryRepository = require("../Repositories/categoryRepository");
 const db = new PostgreDb();
 const categoryRepository = new CategoryRepository(db);
 const categoryService = new CategoryService(categoryRepository);
-
+const cache = {};
 // GET all categories
 /**
  * @swagger
@@ -26,7 +26,24 @@ const categoryService = new CategoryService(categoryRepository);
  */
 router.get("/", async (req, res, next) => {
   try {
+    const cachedCategories = cache["allCategories"];
+
+    if (cachedCategories) {
+      res.set("ETag", cachedCategories.etag);
+      res.set("Last-Modified", cachedCategories.lastModified);
+      return res.json(cachedCategories.data);
+    }
+
     const categories = await categoryService.getAllCategories();
+
+    const etag = categoryService.generateETag(categories);
+    const lastModified = new Date().toUTCString();
+
+    cache["allCategories"] = { data: categories, etag, lastModified };
+
+    res.set("ETag", etag);
+    res.set("Last-Modified", lastModified);
+
     res.json(categories);
   } catch (error) {
     next(error);

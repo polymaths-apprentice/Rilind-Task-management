@@ -76,6 +76,8 @@ class TaskService {
       if (error.message === "Due date must be a future date") {
         throw error;
       } else {
+        //swallowing errors here
+        //creating a new stack trace, dis the previous one
         throw new Error("Failed to create task");
       }
     }

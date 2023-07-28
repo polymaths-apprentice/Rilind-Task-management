@@ -4,6 +4,15 @@ class CategoryService {
   constructor(categoryRepository) {
     this.categoryRepository = categoryRepository;
   }
+  generateETag(data) {
+    return (
+      '"' +
+      JSON.stringify(data).length.toString(16) +
+      "-" +
+      Date.now().toString(16) +
+      '"'
+    );
+  }
 
   async getCategoryById(category_id) {
     try {
